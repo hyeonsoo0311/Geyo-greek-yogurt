@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="음료로 직장인의 체력을 관리하며 퇴근까지 버티는 픽셀 아트 웹 게임"
+    />
+    <link rel="icon" href="data:," />
+    <title>오늘도 출근 완료</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar">
+        <div>
+          <p class="system-copy">OFFICE SURVIVAL SIMULATOR</p>
+          <h1>오늘도 출근 완료</h1>
+        </div>
+        <div class="topbar-actions">
+          <div class="work-clock" aria-label="퇴근까지 남은 시간">
+            <span>퇴근까지</span>
+            <strong id="remainingTime">01:30</strong>
+          </div>
+          <button id="pauseButton" class="pixel-button utility-button" type="button">
+            <span aria-hidden="true">Ⅱ</span>
+            <span id="pauseLabel">일시정지</span>
+          </button>
+          <button id="characterSelectButton" class="pixel-button utility-button" type="button">
+            <span aria-hidden="true">♙</span>
+            캐릭터 변경
+          </button>
+          <button id="restartButton" class="pixel-button utility-button" type="button">
+            <span aria-hidden="true">↻</span>
+            처음부터
+          </button>
+        </div>
+      </header>
+
+      <section class="game-grid" aria-live="polite">
+        <section class="office-stage" aria-label="사무실 게임 화면">
+          <div class="office-tint"></div>
+          <div class="deadline-card">
+            <span>오늘의 업무</span>
+            <strong id="taskCount">7건 남음</strong>
+          </div>
+          <div id="floatingEffect" class="floating-effect" aria-live="assertive"></div>
+          <div id="workerSprite" class="worker-sprite" aria-label="선택한 직장인 캐릭터"></div>
+          <div class="desk-status">
+            <span id="workerName">김대리</span>
+            <strong id="moodLabel">집중해서 일하는 중</strong>
+          </div>
+          <div id="dangerOverlay" class="danger-overlay" aria-hidden="true"></div>
+          <div id="ambulanceScene" class="ambulance-scene" aria-hidden="true">
+            <strong>응급실 이송 중</strong>
+            <img src="./assets/ambulance.png" alt="" />
+          </div>
+        </section>
+
+        <aside class="status-panel" aria-label="캐릭터 상태">
+          <div class="hp-panel">
+            <div class="stat-heading">
+              <span>HP</span>
+              <strong id="hpValue">100 / 100</strong>
+            </div>
+            <div class="meter hp-meter">
+              <div id="hpBar" class="meter-fill"></div>
+            </div>
+          </div>
+
+          <div class="mini-stats">
+            <article class="stat-card focus-card">
+              <div class="stat-heading">
+                <span>FOCUS</span>
+                <strong id="focusValue">45</strong>
+              </div>
+              <div class="meter"><div id="focusBar" class="meter-fill"></div></div>
+            </article>
+            <article class="stat-card caffeine-card">
+              <div class="stat-heading">
+                <span>CAFFEINE</span>
+                <strong id="caffeineValue">0mg</strong>
+              </div>
+              <div class="meter"><div id="caffeineBar" class="meter-fill"></div></div>
+            </article>
+            <article class="stat-card vitamin-card">
+              <div class="stat-heading">
+                <span>VITAMIN</span>
+                <strong id="vitaminValue">0 / 3</strong>
+              </div>
+              <div class="pips" id="vitaminPips" aria-label="비타민 누적량"></div>
+            </article>
+            <article class="stat-card relax-card">
+              <div class="stat-heading">
+                <span>RELAX</span>
+                <strong id="relaxValue">0 / 3</strong>
+              </div>
+              <div class="pips" id="relaxPips" aria-label="릴랙스 누적량"></div>
+            </article>
+          </div>
+
+          <section class="event-log" aria-label="업무 이벤트 기록">
+            <div class="event-title">
+              <span>EVENT · MESSAGE</span>
+              <span id="gameStatus">근무 중</span>
+            </div>
+            <ol id="eventList"></ol>
+          </section>
+        </aside>
+      </section>
+
+      <section class="drink-tray" aria-label="마실 것 제공">
+        <div class="tray-title">
+          <div>
+            <span>체력이 떨어지면 한 잔 제공</span>
+            <strong>음료 선택</strong>
+          </div>
+          <p>PC 단축키 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></p>
+        </div>
+        <div id="drinkGrid" class="drink-grid"></div>
+      </section>
+    </main>
+
+    <section id="startScreen" class="modal-backdrop">
+      <div class="modal-panel start-panel">
+        <p class="system-copy">NO LOGIN · START IMMEDIATELY</p>
+        <h2>오늘 퇴근할 직장인을 선택하세요</h2>
+        <p>HP가 0이 되기 전에 음료를 제공해서 90초를 버티면 퇴근 성공.</p>
+        <div class="character-options">
+          <button class="character-option" type="button" data-gender="male">
+            <span class="portrait portrait-male"></span>
+            <strong>김대리</strong>
+            <small>평범한 남성 직장인</small>
+          </button>
+          <button class="character-option" type="button" data-gender="female">
+            <span class="portrait portrait-female"></span>
+            <strong>이대리</strong>
+            <small>평범한 여성 직장인</small>
+          </button>
+        </div>
+        <div class="how-to-play">
+          <strong>생존 팁</strong>
+          <span>카페인을 너무 많이 마시면 응급실로 실려갑니다.</span>
+          <span>그요 레몬쥬스 3잔은 얼굴을 밝게, BOSS TEA 3잔은 평온하게 만듭니다.</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="resultScreen" class="modal-backdrop is-hidden">
+      <div class="modal-panel result-panel">
+        <p id="resultKicker" class="system-copy">RESULT</p>
+        <h2 id="resultTitle">퇴근 성공</h2>
+        <p id="resultDescription"></p>
+        <div id="resultStats" class="result-stats"></div>
+        <button id="resultRestart" class="pixel-button primary-button" type="button">
+          다시 출근하기
+        </button>
+      </div>
+    </section>
+
+    <script type="module" src="./game.js"></script>
+  </body>
+</html>
