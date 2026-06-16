@@ -1,4 +1,5 @@
 node_modules/
 server.log
 server-error.log
+.github-deploy-success
 .DS_Store
