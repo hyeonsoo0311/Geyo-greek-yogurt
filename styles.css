@@ -908,7 +908,7 @@ kbd {
   }
 
   .worker-sprite {
-    bottom: 10%;
+    bottom: 12%;
     left: 52%;
     width: min(42%, 260px);
   }
@@ -933,7 +933,7 @@ kbd {
   .status-panel {
     top: 6px;
     right: 8px;
-    width: min(250px, calc(100% - 116px));
+    width: min(290px, calc(100% - 116px));
     max-height: calc(100% - 16px);
     gap: 4px;
     padding: 5px;
@@ -976,7 +976,22 @@ kbd {
   }
 
   .mini-stats {
-    gap: 4px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  .mini-stats .stat-heading {
+    display: grid;
+    justify-items: center;
+    gap: 0;
+    margin-bottom: 2px;
+    font-size: 7px;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .mini-stats .stat-heading strong {
+    font-size: 8px;
   }
 
   .pip {
@@ -1087,7 +1102,7 @@ kbd {
   }
 
   .worker-sprite {
-    bottom: 7%;
+    bottom: 13%;
     left: 52%;
     width: min(43%, 190px);
   }
