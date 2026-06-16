@@ -45,6 +45,56 @@
             <span>오늘의 업무</span>
             <strong id="taskCount">7건 남음</strong>
           </div>
+          <aside class="status-panel" aria-label="캐릭터 상태">
+            <div class="hp-panel">
+              <div class="stat-heading">
+                <span>HP</span>
+                <strong id="hpValue">100 / 100</strong>
+              </div>
+              <div class="meter hp-meter">
+                <div id="hpBar" class="meter-fill"></div>
+              </div>
+            </div>
+
+            <div class="mini-stats">
+              <article class="stat-card focus-card">
+                <div class="stat-heading">
+                  <span>FOCUS</span>
+                  <strong id="focusValue">45</strong>
+                </div>
+                <div class="meter"><div id="focusBar" class="meter-fill"></div></div>
+              </article>
+              <article class="stat-card caffeine-card">
+                <div class="stat-heading">
+                  <span>CAFFEINE</span>
+                  <strong id="caffeineValue">0mg</strong>
+                </div>
+                <div class="meter"><div id="caffeineBar" class="meter-fill"></div></div>
+              </article>
+              <article class="stat-card vitamin-card">
+                <div class="stat-heading">
+                  <span>VITAMIN</span>
+                  <strong id="vitaminValue">0 / 3</strong>
+                </div>
+                <div class="pips" id="vitaminPips" aria-label="비타민 누적량"></div>
+              </article>
+              <article class="stat-card relax-card">
+                <div class="stat-heading">
+                  <span>RELAX</span>
+                  <strong id="relaxValue">0 / 3</strong>
+                </div>
+                <div class="pips" id="relaxPips" aria-label="릴랙스 누적량"></div>
+              </article>
+            </div>
+
+            <section class="event-log" aria-label="업무 이벤트 기록">
+              <div class="event-title">
+                <span>EVENT · MESSAGE</span>
+                <span id="gameStatus">근무 중</span>
+              </div>
+              <ol id="eventList"></ol>
+            </section>
+          </aside>
           <div id="floatingEffect" class="floating-effect" aria-live="assertive"></div>
           <div id="workerSprite" class="worker-sprite" aria-label="선택한 직장인 캐릭터"></div>
           <div class="desk-status">
@@ -57,57 +107,6 @@
             <img src="./assets/ambulance.png" alt="" />
           </div>
         </section>
-
-        <aside class="status-panel" aria-label="캐릭터 상태">
-          <div class="hp-panel">
-            <div class="stat-heading">
-              <span>HP</span>
-              <strong id="hpValue">100 / 100</strong>
-            </div>
-            <div class="meter hp-meter">
-              <div id="hpBar" class="meter-fill"></div>
-            </div>
-          </div>
-
-          <div class="mini-stats">
-            <article class="stat-card focus-card">
-              <div class="stat-heading">
-                <span>FOCUS</span>
-                <strong id="focusValue">45</strong>
-              </div>
-              <div class="meter"><div id="focusBar" class="meter-fill"></div></div>
-            </article>
-            <article class="stat-card caffeine-card">
-              <div class="stat-heading">
-                <span>CAFFEINE</span>
-                <strong id="caffeineValue">0mg</strong>
-              </div>
-              <div class="meter"><div id="caffeineBar" class="meter-fill"></div></div>
-            </article>
-            <article class="stat-card vitamin-card">
-              <div class="stat-heading">
-                <span>VITAMIN</span>
-                <strong id="vitaminValue">0 / 3</strong>
-              </div>
-              <div class="pips" id="vitaminPips" aria-label="비타민 누적량"></div>
-            </article>
-            <article class="stat-card relax-card">
-              <div class="stat-heading">
-                <span>RELAX</span>
-                <strong id="relaxValue">0 / 3</strong>
-              </div>
-              <div class="pips" id="relaxPips" aria-label="릴랙스 누적량"></div>
-            </article>
-          </div>
-
-          <section class="event-log" aria-label="업무 이벤트 기록">
-            <div class="event-title">
-              <span>EVENT · MESSAGE</span>
-              <span id="gameStatus">근무 중</span>
-            </div>
-            <ol id="eventList"></ol>
-          </section>
-        </aside>
       </section>
 
       <section class="drink-tray" aria-label="마실 것 제공">
