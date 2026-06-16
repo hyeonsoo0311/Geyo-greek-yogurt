@@ -908,7 +908,7 @@ kbd {
   }
 
   .worker-sprite {
-    bottom: 17%;
+    bottom: 10%;
     left: 52%;
     width: min(42%, 260px);
   }
@@ -931,12 +931,12 @@ kbd {
   }
 
   .status-panel {
-    top: 8px;
+    top: 6px;
     right: 8px;
     width: min(250px, calc(100% - 116px));
     max-height: calc(100% - 16px);
-    gap: 5px;
-    padding: 6px;
+    gap: 4px;
+    padding: 5px;
     border-width: 2px;
     outline-width: 1px;
     box-shadow: 2px 2px 0 #020912;
@@ -949,11 +949,11 @@ kbd {
   }
 
   .hp-panel {
-    padding: 5px;
+    padding: 4px;
   }
 
   .stat-card {
-    padding: 4px;
+    padding: 3px;
   }
 
   .stat-heading {
@@ -963,16 +963,16 @@ kbd {
   }
 
   .hp-panel .stat-heading {
-    font-size: 12px;
+    font-size: 11px;
   }
 
   .meter {
-    height: 7px;
+    height: 6px;
     border-width: 2px;
   }
 
   .hp-meter {
-    height: 10px;
+    height: 8px;
   }
 
   .mini-stats {
@@ -980,7 +980,7 @@ kbd {
   }
 
   .pip {
-    height: 7px;
+    height: 6px;
     border-width: 1px;
   }
 
@@ -1087,7 +1087,7 @@ kbd {
   }
 
   .worker-sprite {
-    bottom: 20%;
+    bottom: 7%;
     left: 52%;
     width: min(43%, 190px);
   }
