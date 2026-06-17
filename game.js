@@ -4,6 +4,8 @@ const MAX_FOCUS = 100;
 const CAFFEINE_DANGER = 400;
 const CAFFEINE_EMERGENCY = 1000;
 const DRINK_COOLDOWN = 1100;
+const LEAD_ENDPOINT = window.GEYO_LEAD_ENDPOINT || "";
+const LEAD_STORAGE_KEY = "geyoCouponLeads";
 
 const drinks = [
   {
@@ -75,6 +77,7 @@ const state = {
   drinkCounts: Object.fromEntries(drinks.map((drink) => [drink.id, 0])),
   cooldowns: Object.fromEntries(drinks.map((drink) => [drink.id, false])),
   log: [],
+  lastOutcome: "",
 };
 
 const elements = {
@@ -107,6 +110,13 @@ const elements = {
   pauseButton: document.querySelector("#pauseButton"),
   pauseLabel: document.querySelector("#pauseLabel"),
   ambulanceScene: document.querySelector("#ambulanceScene"),
+  shareButton: document.querySelector("#shareButton"),
+  resultShare: document.querySelector("#resultShare"),
+  couponForm: document.querySelector("#couponForm"),
+  couponResult: document.querySelector("#couponResult"),
+  leadName: document.querySelector("#leadName"),
+  leadPhone: document.querySelector("#leadPhone"),
+  privacyConsent: document.querySelector("#privacyConsent"),
 };
 
 let gameTimer;
@@ -168,6 +178,7 @@ function resetState(gender = state.gender) {
     drinkCounts: Object.fromEntries(drinks.map((drink) => [drink.id, 0])),
     cooldowns: Object.fromEntries(drinks.map((drink) => [drink.id, false])),
     log: [],
+    lastOutcome: "",
   });
   clearTimers();
   addLog(`${gender === "male" ? "김대리" : "이대리"}가 업무를 시작했다.`);
@@ -175,6 +186,7 @@ function resetState(gender = state.gender) {
   elements.resultScreen.classList.add("is-hidden");
   elements.startScreen.classList.add("is-hidden");
   elements.ambulanceScene.classList.remove("is-active");
+  resetCouponForm();
   startTimers();
   render();
 }
@@ -398,8 +410,10 @@ function endGame(outcome) {
   const emergency = outcome === "emergency";
   state.ended = true;
   state.paused = true;
+  state.lastOutcome = outcome;
   clearTimers();
   elements.ambulanceScene.classList.remove("is-active");
+  resetCouponForm();
   elements.resultKicker.textContent = emergency ? "EMERGENCY ROOM" : success ? "18:00 · CLOCK OUT" : "BURNOUT";
   elements.resultTitle.textContent = emergency
     ? "응급실로 실려갔습니다"
@@ -418,6 +432,171 @@ function endGame(outcome) {
   `;
   elements.resultScreen.classList.remove("is-hidden");
   render();
+}
+
+function getShareData() {
+  return {
+    title: "오늘도 출근 완료",
+    text: "그요 찐착즙주스와 BOSS Tea로 직장인의 퇴근을 도와주는 픽셀 게임",
+    url: window.location.href.split("#")[0],
+  };
+}
+
+async function shareGame() {
+  const shareData = getShareData();
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData);
+      showShareFeedback("공유 창을 열었습니다.");
+      return;
+    }
+
+    await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+    showShareFeedback("게임 링크를 복사했습니다.");
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    showShareFeedback("공유가 막혔습니다. 주소창의 링크를 복사해 주세요.");
+  }
+}
+
+function showShareFeedback(message) {
+  if (!elements.resultScreen.classList.contains("is-hidden")) {
+    setCouponMessage(message);
+    return;
+  }
+
+  if (state.started) {
+    showEffect(message);
+    return;
+  }
+
+  window.alert(message);
+}
+
+function resetCouponForm() {
+  elements.couponForm?.reset();
+  elements.couponResult?.replaceChildren();
+}
+
+function normalizePhone(phone) {
+  return phone.replace(/[^\d]/g, "");
+}
+
+function makeCouponCode() {
+  const outcomeCode = state.lastOutcome ? state.lastOutcome.slice(0, 3).toUpperCase() : "RUN";
+  const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `GEYO-${outcomeCode}-${Date.now().toString(36).slice(-5).toUpperCase()}-${randomPart}`;
+}
+
+function getLeadPayload(couponCode) {
+  return {
+    couponCode,
+    name: elements.leadName.value.trim(),
+    phone: normalizePhone(elements.leadPhone.value),
+    rawPhone: elements.leadPhone.value.trim(),
+    consent: elements.privacyConsent.checked,
+    outcome: state.lastOutcome,
+    hp: Math.ceil(state.hp),
+    focus: Math.round(state.focus),
+    caffeine: Math.round(state.peakCaffeine),
+    drinks: { ...state.drinkCounts },
+    createdAt: new Date().toISOString(),
+    pageUrl: window.location.href.split("#")[0],
+  };
+}
+
+function saveLeadLocally(payload) {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(LEAD_STORAGE_KEY) || "[]");
+    saved.unshift(payload);
+    window.localStorage.setItem(LEAD_STORAGE_KEY, JSON.stringify(saved.slice(0, 50)));
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+async function submitLead(payload) {
+  if (!LEAD_ENDPOINT) {
+    return { synced: false, localSaved: saveLeadLocally(payload) };
+  }
+
+  const response = await fetch(LEAD_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Lead endpoint returned ${response.status}`);
+  }
+
+  return { synced: true };
+}
+
+function renderCouponResult(couponCode, synced) {
+  const title = document.createElement("strong");
+  title.textContent = couponCode;
+
+  const description = document.createElement("span");
+  description.textContent = synced
+    ? "쿠폰 신청이 접수되었습니다. 연락처 확인 후 그요 프로모션 안내를 받을 수 있습니다."
+    : "쿠폰 코드가 발급되었습니다. 현재 저장 서버 연결 전이라 코드를 캡처해 사용해 주세요.";
+
+  const note = document.createElement("small");
+  note.textContent = "추천 제품: 그요 찐착즙 레몬쥬스 · 그요 BOSS TEA";
+
+  elements.couponResult.replaceChildren(title, description, note);
+  elements.couponResult.classList.add("is-issued");
+}
+
+function setCouponMessage(message) {
+  const description = document.createElement("span");
+  description.textContent = message;
+  elements.couponResult.replaceChildren(description);
+  elements.couponResult.classList.remove("is-issued");
+}
+
+async function handleCouponSubmit(event) {
+  event.preventDefault();
+
+  const name = elements.leadName.value.trim();
+  const phone = normalizePhone(elements.leadPhone.value);
+
+  if (name.length < 2) {
+    setCouponMessage("이름을 2글자 이상 입력해 주세요.");
+    elements.leadName.focus();
+    return;
+  }
+
+  if (phone.length < 10 || phone.length > 11) {
+    setCouponMessage("연락처를 10~11자리 숫자로 입력해 주세요.");
+    elements.leadPhone.focus();
+    return;
+  }
+
+  if (!elements.privacyConsent.checked) {
+    setCouponMessage("쿠폰 발급을 위해 개인정보 수집·이용 동의가 필요합니다.");
+    elements.privacyConsent.focus();
+    return;
+  }
+
+  const submitButton = elements.couponForm.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  setCouponMessage("쿠폰 코드를 발급하는 중입니다.");
+
+  const couponCode = makeCouponCode();
+  const payload = getLeadPayload(couponCode);
+
+  try {
+    const result = await submitLead(payload);
+    renderCouponResult(couponCode, result.synced);
+  } catch (error) {
+    saveLeadLocally(payload);
+    renderCouponResult(couponCode, false);
+  } finally {
+    submitButton.disabled = false;
+  }
 }
 
 function chooseCharacter(event) {
@@ -463,4 +642,7 @@ document.querySelector("#pauseButton").addEventListener("click", togglePause);
 document.querySelector("#characterSelectButton").addEventListener("click", showCharacterSelect);
 document.querySelector("#restartButton").addEventListener("click", restartGame);
 document.querySelector("#resultRestart").addEventListener("click", restartGame);
+document.querySelector("#shareButton").addEventListener("click", shareGame);
+document.querySelector("#resultShare").addEventListener("click", shareGame);
+document.querySelector("#couponForm").addEventListener("submit", handleCouponSubmit);
 document.addEventListener("keydown", handleKeyboard);

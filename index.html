@@ -115,7 +115,10 @@
             <span>체력이 떨어지면 한 잔 제공</span>
             <strong>음료 선택</strong>
           </div>
-          <p>PC 단축키 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></p>
+          <div class="tray-actions">
+            <button id="shareButton" class="pixel-button share-button" type="button">공유하기</button>
+            <p>PC 단축키 <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></p>
+          </div>
         </div>
         <div id="drinkGrid" class="drink-grid"></div>
       </section>
@@ -152,9 +155,46 @@
         <h2 id="resultTitle">퇴근 성공</h2>
         <p id="resultDescription"></p>
         <div id="resultStats" class="result-stats"></div>
-        <button id="resultRestart" class="pixel-button primary-button" type="button">
-          다시 출근하기
-        </button>
+        <section class="coupon-panel" aria-label="그요 쿠폰 신청">
+          <p class="system-copy">GEYO JUICE · BOSS TEA COUPON</p>
+          <h3>게임 참여 쿠폰 받기</h3>
+          <p>
+            이름과 연락처를 남기면 그요 찐착즙주스와 BOSS Tea 프로모션 쿠폰 코드를 발급합니다.
+          </p>
+          <p class="privacy-note">
+            수집 항목: 이름, 연락처 · 이용 목적: 쿠폰 발급 및 이벤트 안내 · 보관 기간: 이벤트 종료 후 3개월
+          </p>
+          <form id="couponForm" class="coupon-form">
+            <label>
+              <span>이름</span>
+              <input id="leadName" name="name" type="text" autocomplete="name" placeholder="홍길동" required />
+            </label>
+            <label>
+              <span>연락처</span>
+              <input
+                id="leadPhone"
+                name="phone"
+                type="tel"
+                inputmode="tel"
+                autocomplete="tel"
+                placeholder="010-0000-0000"
+                required
+              />
+            </label>
+            <label class="consent-check">
+              <input id="privacyConsent" type="checkbox" required />
+              <span>쿠폰 발급과 이벤트 안내를 위한 개인정보 수집·이용에 동의합니다.</span>
+            </label>
+            <button class="pixel-button primary-button" type="submit">쿠폰 코드 발급</button>
+          </form>
+          <div id="couponResult" class="coupon-result" aria-live="polite"></div>
+        </section>
+        <div class="result-actions">
+          <button id="resultShare" class="pixel-button utility-button" type="button">게임 공유하기</button>
+          <button id="resultRestart" class="pixel-button primary-button" type="button">
+            다시 출근하기
+          </button>
+        </div>
       </div>
     </section>
 
