@@ -316,10 +316,11 @@ function render() {
   const seconds = String(remaining % 60).padStart(2, "0");
   const hpPercent = (state.hp / MAX_HP) * 100;
   const caffeinePercent = Math.min(100, (state.caffeine / CAFFEINE_EMERGENCY) * 100);
+  const genderClass = state.gender === "male" ? "is-male" : "is-female";
 
   elements.workerSprite.style.setProperty("--row", state.gender === "male" ? 0 : 1);
   elements.workerSprite.style.setProperty("--col", expression.col);
-  elements.workerSprite.className = `worker-sprite ${expression.className}`;
+  elements.workerSprite.className = ["worker-sprite", genderClass, expression.className].filter(Boolean).join(" ");
   elements.workerName.textContent = state.gender === "male" ? "김대리" : "이대리";
   elements.moodLabel.textContent = expression.label;
   elements.hpValue.textContent = `${Math.ceil(state.hp)} / ${MAX_HP}`;

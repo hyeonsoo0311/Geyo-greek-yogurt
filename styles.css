@@ -204,13 +204,15 @@ h1 {
 .worker-sprite {
   --col: 0;
   --row: 0;
+  --worker-shift-x: -50%;
+  --worker-shift-y: 0%;
   position: absolute;
   bottom: 14%;
   left: 50%;
   z-index: 2;
   width: min(35%, 360px, 39vh);
   aspect-ratio: 4 / 5;
-  transform: translateX(-50%);
+  transform: translate(var(--worker-shift-x), var(--worker-shift-y));
   background-image: url("./assets/workers-body.png");
   background-repeat: no-repeat;
   background-size: 500% 200%;
@@ -218,6 +220,10 @@ h1 {
   image-rendering: pixelated;
   filter: drop-shadow(8px 9px 0 rgba(3, 9, 14, 0.48));
   transition: filter 180ms ease, scale 180ms ease;
+}
+
+.worker-sprite.is-male {
+  --worker-shift-y: -8.5%;
 }
 
 .worker-sprite.is-caffeinated {
@@ -237,10 +243,10 @@ h1 {
 @keyframes caffeine-shake {
   0%,
   100% {
-    transform: translateX(-50%) rotate(-0.6deg);
+    transform: translate(var(--worker-shift-x), var(--worker-shift-y)) rotate(-0.6deg);
   }
   50% {
-    transform: translateX(calc(-50% + 3px)) rotate(0.6deg);
+    transform: translate(calc(var(--worker-shift-x) + 3px), var(--worker-shift-y)) rotate(0.6deg);
   }
 }
 
