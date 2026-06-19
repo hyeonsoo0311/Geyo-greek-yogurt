@@ -5,7 +5,9 @@ const CAFFEINE_DANGER = 400;
 const CAFFEINE_EMERGENCY = 1000;
 const DRINK_COOLDOWN = 1100;
 const LEAD_ENDPOINT = window.GEYO_LEAD_ENDPOINT || "";
+const LEAD_COUNT_ENDPOINT = window.GEYO_LEAD_COUNT_ENDPOINT || "";
 const LEAD_STORAGE_KEY = "geyoCouponLeads";
+const COUPON_LIMIT = 100;
 
 const drinks = [
   {
@@ -114,6 +116,7 @@ const elements = {
   resultShare: document.querySelector("#resultShare"),
   couponForm: document.querySelector("#couponForm"),
   couponResult: document.querySelector("#couponResult"),
+  couponProgress: document.querySelector("#couponProgress"),
   leadName: document.querySelector("#leadName"),
   leadPhone: document.querySelector("#leadPhone"),
   privacyConsent: document.querySelector("#privacyConsent"),
@@ -187,6 +190,7 @@ function resetState(gender = state.gender) {
   elements.startScreen.classList.add("is-hidden");
   elements.ambulanceScene.classList.remove("is-active");
   resetCouponForm();
+  updateCouponProgress();
   startTimers();
   render();
 }
@@ -415,6 +419,7 @@ function endGame(outcome) {
   clearTimers();
   elements.ambulanceScene.classList.remove("is-active");
   resetCouponForm();
+  updateCouponProgress();
   elements.resultKicker.textContent = emergency ? "EMERGENCY ROOM" : success ? "18:00 · CLOCK OUT" : "BURNOUT";
   elements.resultTitle.textContent = emergency
     ? "응급실로 실려갔습니다"
@@ -477,21 +482,22 @@ function showShareFeedback(message) {
 function resetCouponForm() {
   elements.couponForm?.reset();
   elements.couponResult?.replaceChildren();
+  elements.couponResult?.classList.remove("is-issued", "is-warning");
 }
 
 function normalizePhone(phone) {
   return phone.replace(/[^\d]/g, "");
 }
 
-function makeCouponCode() {
+function makeLeadId() {
   const outcomeCode = state.lastOutcome ? state.lastOutcome.slice(0, 3).toUpperCase() : "RUN";
   const randomPart = Math.random().toString(36).slice(2, 6).toUpperCase();
-  return `GEYO-${outcomeCode}-${Date.now().toString(36).slice(-5).toUpperCase()}-${randomPart}`;
+  return `LEAD-${outcomeCode}-${Date.now().toString(36).slice(-5).toUpperCase()}-${randomPart}`;
 }
 
-function getLeadPayload(couponCode) {
+function getLeadPayload(leadId) {
   return {
-    couponCode,
+    leadId,
     name: elements.leadName.value.trim(),
     phone: normalizePhone(elements.leadPhone.value),
     rawPhone: elements.leadPhone.value.trim(),
@@ -503,6 +509,9 @@ function getLeadPayload(couponCode) {
     drinks: { ...state.drinkCounts },
     createdAt: new Date().toISOString(),
     pageUrl: window.location.href.split("#")[0],
+    couponLimit: COUPON_LIMIT,
+    smsCouponRequired: true,
+    couponImageRequired: true,
   };
 }
 
@@ -532,30 +541,86 @@ async function submitLead(payload) {
     throw new Error(`Lead endpoint returned ${response.status}`);
   }
 
-  return { synced: true };
+  const data = await response.json().catch(() => ({}));
+  return {
+    synced: true,
+    total: Number(data.total ?? data.participantCount ?? 0),
+    couponIssued: Number(data.couponIssued ?? data.issuedCount ?? 0),
+    couponEligible: Boolean(data.couponEligible ?? data.eligible ?? true),
+    smsQueued: Boolean(data.smsQueued ?? data.smsSent ?? false),
+  };
 }
 
-function renderCouponResult(couponCode, synced) {
+function renderCouponResult(result) {
   const title = document.createElement("strong");
-  title.textContent = couponCode;
+  title.textContent = result.synced ? "신청이 접수되었습니다" : "문자 발송 서버 연결 필요";
 
   const description = document.createElement("span");
-  description.textContent = synced
-    ? "쿠폰 신청이 접수되었습니다. 연락처 확인 후 그요 프로모션 안내를 받을 수 있습니다."
-    : "쿠폰 코드가 발급되었습니다. 현재 저장 서버 연결 전이라 코드를 캡처해 사용해 주세요.";
+  if (!result.synced) {
+    description.textContent =
+      "현재 서버 연결 전이라 관리자 저장과 문자 발송은 되지 않습니다. 실제 이벤트 전 문자 발송 서버를 연결해야 합니다.";
+  } else if (result.couponEligible) {
+    description.textContent =
+      "선착순 쿠폰 대상입니다. 입력한 연락처로 이미지 쿠폰 문자가 발송됩니다.";
+  } else {
+    description.textContent =
+      "선착순 100명 쿠폰은 마감되었습니다. 후속 이벤트 안내 대상으로 접수되었습니다.";
+  }
 
   const note = document.createElement("small");
-  note.textContent = "추천 제품: 그요 찐착즙 레몬쥬스 · 그요 BOSS TEA";
+  note.textContent = "쿠폰 이미지는 추후 제작 후 문자 발송 템플릿에 연결됩니다.";
 
   elements.couponResult.replaceChildren(title, description, note);
-  elements.couponResult.classList.add("is-issued");
+  elements.couponResult.classList.toggle("is-issued", result.synced);
+  elements.couponResult.classList.toggle("is-warning", !result.synced);
+  renderCouponProgress(result);
 }
 
 function setCouponMessage(message) {
   const description = document.createElement("span");
   description.textContent = message;
   elements.couponResult.replaceChildren(description);
-  elements.couponResult.classList.remove("is-issued");
+  elements.couponResult.classList.remove("is-issued", "is-warning");
+}
+
+function renderCouponProgress(stats = {}) {
+  if (!elements.couponProgress) return;
+
+  const total = Number(stats.total ?? stats.participantCount);
+  const issued = Number(stats.couponIssued ?? stats.issuedCount);
+  const limit = Number(stats.couponLimit ?? COUPON_LIMIT);
+
+  if (!Number.isFinite(total) || total < 0) {
+    elements.couponProgress.textContent = LEAD_COUNT_ENDPOINT
+      ? "현재 참여자 수를 불러오는 중입니다."
+      : "현재 참여자 수는 문자 발송 서버 연결 후 표시됩니다.";
+    elements.couponProgress.classList.remove("is-closed");
+    return;
+  }
+
+  const couponCount = Number.isFinite(issued) && issued > 0 ? issued : Math.min(total, limit);
+  const closed = couponCount >= limit;
+  elements.couponProgress.textContent = closed
+    ? `현재 참여 ${total}명 · 선착순 ${limit}명 쿠폰 마감, 후속 이벤트 안내 접수 중`
+    : `현재 참여 ${total}명 · 선착순 쿠폰 ${couponCount}/${limit}명`;
+  elements.couponProgress.classList.toggle("is-closed", closed);
+}
+
+async function updateCouponProgress() {
+  if (!LEAD_COUNT_ENDPOINT) {
+    renderCouponProgress();
+    return;
+  }
+
+  try {
+    const response = await fetch(LEAD_COUNT_ENDPOINT, { method: "GET" });
+    if (!response.ok) throw new Error(`Lead count endpoint returned ${response.status}`);
+    const data = await response.json();
+    renderCouponProgress(data);
+  } catch (error) {
+    elements.couponProgress.textContent = "현재 참여자 수를 불러오지 못했습니다.";
+    elements.couponProgress.classList.add("is-closed");
+  }
 }
 
 async function handleCouponSubmit(event) {
@@ -584,17 +649,17 @@ async function handleCouponSubmit(event) {
 
   const submitButton = elements.couponForm.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-  setCouponMessage("쿠폰 코드를 발급하는 중입니다.");
+  setCouponMessage("문자 쿠폰 신청을 접수하는 중입니다.");
 
-  const couponCode = makeCouponCode();
-  const payload = getLeadPayload(couponCode);
+  const leadId = makeLeadId();
+  const payload = getLeadPayload(leadId);
 
   try {
     const result = await submitLead(payload);
-    renderCouponResult(couponCode, result.synced);
+    renderCouponResult(result);
   } catch (error) {
     saveLeadLocally(payload);
-    renderCouponResult(couponCode, false);
+    renderCouponResult({ synced: false });
   } finally {
     submitButton.disabled = false;
   }

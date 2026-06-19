@@ -226,6 +226,13 @@ h1 {
   --worker-shift-y: -8.5%;
 }
 
+@media (min-width: 821px) {
+  .worker-sprite,
+  .worker-sprite.is-male {
+    --worker-shift-y: 8%;
+  }
+}
+
 .worker-sprite.is-caffeinated {
   animation: caffeine-shake 280ms steps(2, end) infinite;
 }
@@ -883,6 +890,22 @@ kbd {
   font-size: 11px;
 }
 
+.coupon-progress {
+  width: fit-content;
+  padding: 7px 9px;
+  border: 2px solid #07101a;
+  outline: 2px solid #526f89;
+  background: #102a2d;
+  color: #8ff0c0;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.coupon-progress.is-closed {
+  background: #33223a;
+  color: #ffc36b;
+}
+
 .coupon-form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -949,6 +972,15 @@ kbd {
   font-family: monospace;
   font-size: 20px;
   letter-spacing: 0.04em;
+}
+
+.coupon-result.is-warning strong {
+  outline-color: #ff9a6c;
+  background: #46252c;
+  color: #ffd4a3;
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0;
 }
 
 .coupon-result small {
