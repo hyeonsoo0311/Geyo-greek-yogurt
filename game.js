@@ -533,7 +533,6 @@ async function submitLead(payload) {
 
   const response = await fetch(LEAD_ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -560,8 +559,9 @@ function renderCouponResult(result) {
     description.textContent =
       "현재 서버 연결 전이라 관리자 저장과 문자 발송은 되지 않습니다. 실제 이벤트 전 문자 발송 서버를 연결해야 합니다.";
   } else if (result.couponEligible) {
-    description.textContent =
-      "선착순 쿠폰 대상입니다. 입력한 연락처로 이미지 쿠폰 문자가 발송됩니다.";
+    description.textContent = result.smsQueued
+      ? "선착순 쿠폰 대상입니다. 입력한 연락처로 이미지 쿠폰 문자 발송 요청이 접수되었습니다."
+      : "선착순 쿠폰 대상입니다. 입력한 연락처가 이미지 쿠폰 문자 발송 대기 목록에 접수되었습니다.";
   } else {
     description.textContent =
       "선착순 100명 쿠폰은 마감되었습니다. 후속 이벤트 안내 대상으로 접수되었습니다.";
