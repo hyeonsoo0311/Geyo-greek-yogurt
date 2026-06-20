@@ -313,6 +313,12 @@ function beginCooldown(drinkId) {
 }
 
 function getExpression() {
+  if (state.hp < 30) {
+    return { col: 1, label: "HP가 거의 바닥나 다크서클이 내려온 상태", className: "is-exhausted" };
+  }
+  if (state.hp < 50) {
+    return { col: 1, label: "체력이 떨어져 지친 상태", className: "is-tired" };
+  }
   if (state.caffeine > CAFFEINE_DANGER) {
     return { col: 2, label: "업무를 계속하는 중", className: "is-caffeinated" };
   }
@@ -322,7 +328,7 @@ function getExpression() {
   if (state.vitamin >= 3) {
     return { col: 3, label: "비타민 효과로 얼굴이 밝아짐", className: "is-happy" };
   }
-  if (state.hp < 38 || state.focus < 24) {
+  if (state.focus < 24) {
     return { col: 1, label: "체력이 떨어져 지친 상태", className: "" };
   }
   return { col: 0, label: "집중해서 일하는 중", className: "" };

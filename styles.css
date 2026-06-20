@@ -206,6 +206,8 @@ h1 {
   --row: 0;
   --worker-shift-x: -50%;
   --worker-shift-y: 0%;
+  --fatigue-face-x: 50%;
+  --fatigue-face-y: 28%;
   position: absolute;
   bottom: 14%;
   left: 50%;
@@ -222,6 +224,14 @@ h1 {
   transition: filter 180ms ease, scale 180ms ease;
 }
 
+.worker-sprite::before,
+.worker-sprite::after {
+  content: "";
+  position: absolute;
+  display: none;
+  pointer-events: none;
+}
+
 .worker-sprite.is-male {
   --worker-shift-y: -8.5%;
 }
@@ -235,6 +245,45 @@ h1 {
 
 .worker-sprite.is-caffeinated {
   animation: caffeine-shake 280ms steps(2, end) infinite;
+}
+
+.worker-sprite.is-tired {
+  filter: drop-shadow(8px 9px 0 rgba(3, 9, 14, 0.48)) saturate(0.9) brightness(0.94);
+}
+
+.worker-sprite.is-exhausted {
+  filter: drop-shadow(8px 9px 0 rgba(3, 9, 14, 0.48)) saturate(0.72) brightness(0.86);
+}
+
+.worker-sprite.is-exhausted::before {
+  display: block;
+  left: calc(var(--fatigue-face-x) - 17%);
+  top: calc(var(--fatigue-face-y) + 2%);
+  z-index: 1;
+  width: 34%;
+  height: 12%;
+  background:
+    radial-gradient(ellipse at 32% 50%, rgba(22, 28, 42, 0.82) 0 17%, transparent 22%),
+    radial-gradient(ellipse at 68% 50%, rgba(22, 28, 42, 0.82) 0 17%, transparent 22%);
+  mix-blend-mode: multiply;
+  image-rendering: pixelated;
+}
+
+.worker-sprite.is-exhausted::after {
+  display: block;
+  left: calc(var(--fatigue-face-x) - 23%);
+  top: calc(var(--fatigue-face-y) - 8%);
+  z-index: 1;
+  width: 46%;
+  height: 30%;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 8px,
+    rgba(28, 34, 49, 0.48) 8px 11px,
+    transparent 11px 18px
+  );
+  clip-path: polygon(14% 2%, 100% 15%, 84% 100%, 0 82%);
+  image-rendering: pixelated;
 }
 
 .worker-sprite.is-happy {
