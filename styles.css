@@ -838,7 +838,7 @@ kbd {
   margin: 18px 0;
 }
 
-.geyo-ad-panel {
+.guyo-ad-panel {
   display: grid;
   gap: 8px;
   padding: 15px;
@@ -850,21 +850,21 @@ kbd {
   text-align: left;
 }
 
-.geyo-ad-panel strong {
+.guyo-ad-panel strong {
   color: #fff0a7;
   font-size: clamp(18px, 3vw, 27px);
   line-height: 1.35;
   text-shadow: 2px 2px 0 #02070c;
 }
 
-.geyo-ad-panel span {
+.guyo-ad-panel span {
   color: #d7f5e8;
   font-size: 14px;
   font-weight: 900;
   line-height: 1.55;
 }
 
-.geyo-ad-panel small {
+.guyo-ad-panel small {
   color: #8dddb0;
   font-size: 11px;
   font-weight: 900;
@@ -898,22 +898,6 @@ kbd {
 .coupon-panel .privacy-note {
   color: #8aa8bd;
   font-size: 11px;
-}
-
-.coupon-progress {
-  width: fit-content;
-  padding: 7px 9px;
-  border: 2px solid #07101a;
-  outline: 2px solid #526f89;
-  background: #102a2d;
-  color: #8ff0c0;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.coupon-progress.is-closed {
-  background: #33223a;
-  color: #ffc36b;
 }
 
 .coupon-form {
@@ -1324,12 +1308,12 @@ kbd {
     margin: 12px 0;
   }
 
-  .geyo-ad-panel {
+  .guyo-ad-panel {
     gap: 6px;
     padding: 10px;
   }
 
-  .geyo-ad-panel span {
+  .guyo-ad-panel span {
     font-size: 12px;
   }
 

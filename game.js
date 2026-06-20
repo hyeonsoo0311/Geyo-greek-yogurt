@@ -1,14 +1,13 @@
 const GAME_DURATION = 30;
-const MAX_HP = 100;
+const MAX_HP = 70;
 const MAX_FOCUS = 100;
 const CAFFEINE_DANGER = 400;
 const CAFFEINE_EMERGENCY = 1000;
 const DRINK_COOLDOWN = 1100;
-const GEYO_ENDING_DRINKS = 4;
+const GUYO_ENDING_DRINKS = 4;
 const CAFFEINE_ENDING_DRINKS = 4;
-const LEAD_ENDPOINT = window.GEYO_LEAD_ENDPOINT || "";
-const LEAD_COUNT_ENDPOINT = window.GEYO_LEAD_COUNT_ENDPOINT || "";
-const LEAD_STORAGE_KEY = "geyoCouponLeads";
+const LEAD_ENDPOINT = window.GUYO_LEAD_ENDPOINT || "";
+const LEAD_STORAGE_KEY = "guyoGifticonLeads";
 const COUPON_LIMIT = 100;
 
 const drinks = [
@@ -118,7 +117,6 @@ const elements = {
   resultShare: document.querySelector("#resultShare"),
   couponForm: document.querySelector("#couponForm"),
   couponResult: document.querySelector("#couponResult"),
-  couponProgress: document.querySelector("#couponProgress"),
   leadName: document.querySelector("#leadName"),
   leadPhone: document.querySelector("#leadPhone"),
   privacyConsent: document.querySelector("#privacyConsent"),
@@ -192,7 +190,6 @@ function resetState(gender = state.gender) {
   elements.startScreen.classList.add("is-hidden");
   elements.ambulanceScene.classList.remove("is-active");
   resetCouponForm();
-  updateCouponProgress();
   startTimers();
   render();
 }
@@ -271,7 +268,7 @@ function serveDrink(drinkId) {
     return;
   }
 
-  if (geyoDrinkCount >= GEYO_ENDING_DRINKS) {
+  if (geyoDrinkCount >= GUYO_ENDING_DRINKS) {
     addLog("그요 음료로 오늘 하루를 건강하게 버텼다.");
     endGame("geyo");
     return;
@@ -444,11 +441,10 @@ function endGame(outcome) {
   clearTimers();
   elements.ambulanceScene.classList.remove("is-active");
   resetCouponForm();
-  updateCouponProgress();
   elements.resultKicker.textContent = emergency
     ? "EMERGENCY ROOM"
     : geyoSuccess
-      ? "GEYO · CLOCK OUT"
+      ? "GUYO · CLOCK OUT"
       : success
         ? "18:00 · CLOCK OUT"
         : "BURNOUT";
@@ -467,11 +463,12 @@ function endGame(outcome) {
         ? "음료 선택과 타이밍 관리로 평범하지만 중요한 하루를 버텼습니다."
       : "퇴근보다 먼저 체력이 끝났습니다. 다음 출근에는 음료 타이밍을 바꿔보세요.";
   elements.resultStats.innerHTML = `
-    <section class="geyo-ad-panel" aria-label="그요 광고">
-      <p class="system-copy">GEYO MESSAGE</p>
+    <section class="guyo-ad-panel" aria-label="그요 광고">
+      <p class="system-copy">GUYO MESSAGE</p>
       <strong>과도한 카페인은 당신의 속을 상하게 만들 수 있어요.</strong>
-      <span>그요에서 건강하게, 착즙쥬스와 다양한 Tea 를 즐겨보세요.</span>
-      <small>직장인 친구에게 게임을 공유하고, 그요 기프티콘 신청까지 완료해보세요.</small>
+      <span>그요(GUYO)는 헬씨 플레저 브랜드로 그릭요거트와 착즙쥬스, Tea를 판매하고 있습니다.</span>
+      <span>그요(GUYO)에서 건강하게, 착즙쥬스와 다양한 Tea를 즐겨보세요.</span>
+      <small>커피의 뇌절에 지친 사람들에게 게임을 공유하고 그요 기프티콘 신청까지 완료해보세요.</small>
     </section>
   `;
   elements.resultScreen.classList.remove("is-hidden");
@@ -548,7 +545,7 @@ function getLeadPayload(leadId) {
     createdAt: new Date().toISOString(),
     pageUrl: window.location.href.split("#")[0],
     couponLimit: COUPON_LIMIT,
-    campaign: "geyo-juice-tea-gifticon",
+    campaign: "guyo-juice-tea-gifticon",
     smsCouponRequired: true,
     couponImageRequired: true,
   };
@@ -612,7 +609,6 @@ function renderCouponResult(result) {
   elements.couponResult.replaceChildren(title, description, note);
   elements.couponResult.classList.toggle("is-issued", result.synced);
   elements.couponResult.classList.toggle("is-warning", !result.synced);
-  renderCouponProgress(result);
 }
 
 function setCouponMessage(message) {
@@ -620,46 +616,6 @@ function setCouponMessage(message) {
   description.textContent = message;
   elements.couponResult.replaceChildren(description);
   elements.couponResult.classList.remove("is-issued", "is-warning");
-}
-
-function renderCouponProgress(stats = {}) {
-  if (!elements.couponProgress) return;
-
-  const total = Number(stats.total ?? stats.participantCount);
-  const issued = Number(stats.couponIssued ?? stats.issuedCount);
-  const limit = Number(stats.couponLimit ?? COUPON_LIMIT);
-
-  if (!Number.isFinite(total) || total < 0) {
-    elements.couponProgress.textContent = LEAD_COUNT_ENDPOINT
-      ? "현재 참여자 수를 불러오는 중입니다."
-      : "현재 참여자 수는 문자 발송 서버 연결 후 표시됩니다.";
-    elements.couponProgress.classList.remove("is-closed");
-    return;
-  }
-
-  const couponCount = Number.isFinite(issued) && issued > 0 ? issued : Math.min(total, limit);
-  const closed = couponCount >= limit;
-  elements.couponProgress.textContent = closed
-    ? `현재 참여 ${total}명 · 선착순 ${limit}명 기프티콘 마감, 후속 이벤트 안내 접수 중`
-    : `현재 참여 ${total}명 · 선착순 기프티콘 ${couponCount}/${limit}명`;
-  elements.couponProgress.classList.toggle("is-closed", closed);
-}
-
-async function updateCouponProgress() {
-  if (!LEAD_COUNT_ENDPOINT) {
-    renderCouponProgress();
-    return;
-  }
-
-  try {
-    const response = await fetch(LEAD_COUNT_ENDPOINT, { method: "GET" });
-    if (!response.ok) throw new Error(`Lead count endpoint returned ${response.status}`);
-    const data = await response.json();
-    renderCouponProgress(data);
-  } catch (error) {
-    elements.couponProgress.textContent = "현재 참여자 수를 불러오지 못했습니다.";
-    elements.couponProgress.classList.add("is-closed");
-  }
 }
 
 async function handleCouponSubmit(event) {
