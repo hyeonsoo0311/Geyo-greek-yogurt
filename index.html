@@ -21,7 +21,7 @@
         <div class="topbar-actions">
           <div class="work-clock" aria-label="퇴근까지 남은 시간">
             <span>퇴근까지</span>
-            <strong id="remainingTime">01:30</strong>
+            <strong id="remainingTime">00:30</strong>
           </div>
           <button id="pauseButton" class="pixel-button utility-button" type="button">
             <span aria-hidden="true">Ⅱ</span>
@@ -128,7 +128,7 @@
       <div class="modal-panel start-panel">
         <p class="system-copy">NO LOGIN · START IMMEDIATELY</p>
         <h2>오늘 퇴근할 직장인을 선택하세요</h2>
-        <p>HP가 0이 되기 전에 음료를 제공해서 90초를 버티면 퇴근 성공.</p>
+        <p>HP가 0이 되기 전에 30초를 버티거나, 그요 음료 4잔으로 건강한 퇴근 엔딩을 열어보세요.</p>
         <div class="character-options">
           <button class="character-option" type="button" data-gender="male">
             <span class="portrait portrait-male"></span>
@@ -143,8 +143,8 @@
         </div>
         <div class="how-to-play">
           <strong>생존 팁</strong>
-          <span>카페인을 너무 많이 마시면 응급실로 실려갑니다.</span>
-          <span>그요 레몬쥬스 3잔은 얼굴을 밝게, BOSS TEA 3잔은 평온하게 만듭니다.</span>
+          <span>GEGA COFFEE와 RED BEAR를 합산 4잔 마시면 응급실로 실려갑니다.</span>
+          <span>그요 레몬쥬스와 BOSS TEA를 합산 4잔 마시면 건강한 퇴근 엔딩이 열립니다.</span>
         </div>
       </div>
     </section>
@@ -155,11 +155,12 @@
         <h2 id="resultTitle">퇴근 성공</h2>
         <p id="resultDescription"></p>
         <div id="resultStats" class="result-stats"></div>
-        <section class="coupon-panel" aria-label="그요 쿠폰 신청">
+        <section class="coupon-panel" aria-label="그요 기프티콘 신청">
           <p class="system-copy">GEYO JUICE · BOSS TEA COUPON</p>
-          <h3>게임 참여 문자 쿠폰 신청</h3>
+          <h3>그요 기프티콘 신청</h3>
           <p>
-            이름과 연락처를 남기면 선착순 100명에게 그요 찐착즙주스와 BOSS Tea 이미지 쿠폰을 문자로 발송합니다.
+            게임에 참여하신 분들 중 그요에 관심이 있는 분들은 이름과 연락처를 남겨주세요.
+            선착순 100명에게 그요 찐착즙주스와 BOSS Tea 기프티콘을 보내드립니다.
           </p>
           <div id="couponProgress" class="coupon-progress" aria-live="polite">
             현재 참여자 수 확인 중
@@ -186,9 +187,9 @@
             </label>
             <label class="consent-check">
               <input id="privacyConsent" type="checkbox" required />
-              <span>쿠폰 문자 발송과 후속 이벤트 안내를 위한 개인정보 수집·이용에 동의합니다.</span>
+              <span>기프티콘 발송과 후속 이벤트 안내를 위한 개인정보 수집·이용에 동의합니다.</span>
             </label>
-            <button class="pixel-button primary-button" type="submit">문자 쿠폰 신청</button>
+            <button class="pixel-button primary-button" type="submit">기프티콘 신청</button>
           </form>
           <div id="couponResult" class="coupon-result" aria-live="polite"></div>
         </section>

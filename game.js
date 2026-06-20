@@ -1,9 +1,11 @@
-const GAME_DURATION = 90;
+const GAME_DURATION = 30;
 const MAX_HP = 100;
 const MAX_FOCUS = 100;
 const CAFFEINE_DANGER = 400;
 const CAFFEINE_EMERGENCY = 1000;
 const DRINK_COOLDOWN = 1100;
+const GEYO_ENDING_DRINKS = 4;
+const CAFFEINE_ENDING_DRINKS = 4;
 const LEAD_ENDPOINT = window.GEYO_LEAD_ENDPOINT || "";
 const LEAD_COUNT_ENDPOINT = window.GEYO_LEAD_COUNT_ENDPOINT || "";
 const LEAD_STORAGE_KEY = "geyoCouponLeads";
@@ -210,8 +212,8 @@ function gameTick() {
   if (state.paused || state.ended) return;
 
   state.elapsed += 1;
-  const hpDrain = state.caffeine > CAFFEINE_DANGER ? 2.1 : 1.15;
-  const relaxShield = state.relax >= 3 ? 0.45 : 0;
+  const hpDrain = state.caffeine > CAFFEINE_DANGER ? 4.2 : 2.8;
+  const relaxShield = state.relax >= 3 ? 0.7 : 0;
   state.hp = clamp(state.hp - hpDrain + relaxShield, 0, MAX_HP);
   state.focus = clamp(state.focus - (state.caffeine > 0 ? 0.08 : 0.35), 0, MAX_FOCUS);
   state.caffeine = clamp(state.caffeine - 1.6, 0, CAFFEINE_EMERGENCY + 200);
@@ -258,6 +260,22 @@ function serveDrink(drinkId) {
   state.vitamin += drink.vitamin || 0;
   state.relax += drink.relax || 0;
   addLog(drink.message);
+
+  const geyoDrinkCount = state.drinkCounts.lemon + state.drinkCounts.tea;
+  const caffeineDrinkCount = state.drinkCounts.coffee + state.drinkCounts.redbear;
+
+  if (caffeineDrinkCount >= CAFFEINE_ENDING_DRINKS) {
+    addLog("카페인 음료를 4잔 마셨다. 몸이 더 이상 버티지 못한다.");
+    render();
+    triggerEmergencyEnding();
+    return;
+  }
+
+  if (geyoDrinkCount >= GEYO_ENDING_DRINKS) {
+    addLog("그요 음료로 오늘 하루를 건강하게 버텼다.");
+    endGame("geyo");
+    return;
+  }
 
   if (state.caffeine >= CAFFEINE_EMERGENCY) {
     render();
@@ -339,7 +357,13 @@ function render() {
   elements.relaxValue.textContent = `${Math.min(state.relax, 3)} / 3`;
   elements.remainingTime.textContent = `${minutes}:${seconds}`;
   elements.taskCount.textContent = `${state.tasks}건 남음`;
-  elements.gameStatus.textContent = state.paused ? "일시정지" : "근무 중";
+  elements.gameStatus.textContent = state.ended
+    ? state.lastOutcome === "emergency"
+      ? "응급실 이송"
+      : "퇴근 완료"
+    : state.paused
+      ? "일시정지"
+      : "근무 중";
   elements.pauseLabel.textContent = state.paused ? "계속하기" : "일시정지";
   elements.dangerOverlay.classList.toggle("is-active", state.hp < 28);
 
@@ -411,7 +435,8 @@ function triggerEmergencyEnding() {
 }
 
 function endGame(outcome) {
-  const success = outcome === "success";
+  const geyoSuccess = outcome === "geyo";
+  const success = outcome === "success" || geyoSuccess;
   const emergency = outcome === "emergency";
   state.ended = true;
   state.paused = true;
@@ -420,21 +445,34 @@ function endGame(outcome) {
   elements.ambulanceScene.classList.remove("is-active");
   resetCouponForm();
   updateCouponProgress();
-  elements.resultKicker.textContent = emergency ? "EMERGENCY ROOM" : success ? "18:00 · CLOCK OUT" : "BURNOUT";
+  elements.resultKicker.textContent = emergency
+    ? "EMERGENCY ROOM"
+    : geyoSuccess
+      ? "GEYO · CLOCK OUT"
+      : success
+        ? "18:00 · CLOCK OUT"
+        : "BURNOUT";
   elements.resultTitle.textContent = emergency
     ? "응급실로 실려갔습니다"
-    : success
-      ? "오늘도 무사 퇴근"
+    : geyoSuccess
+      ? "오늘 하루도 잘 해냈습니다"
+      : success
+        ? "오늘도 무사 퇴근"
       : "HP가 0이 되었습니다";
   elements.resultDescription.textContent = emergency
-    ? "카페인이 1000mg을 넘었습니다. 오늘의 퇴근지는 집이 아니라 응급실입니다."
-    : success
-      ? "음료 선택과 타이밍 관리로 평범하지만 중요한 하루를 버텼습니다."
+    ? "카페인 음료를 너무 많이 선택했습니다. 오늘의 퇴근지는 집이 아니라 응급실입니다."
+    : geyoSuccess
+      ? "그요 착즙쥬스와 BOSS Tea로 속 편하게 버티고 퇴근했습니다."
+      : success
+        ? "음료 선택과 타이밍 관리로 평범하지만 중요한 하루를 버텼습니다."
       : "퇴근보다 먼저 체력이 끝났습니다. 다음 출근에는 음료 타이밍을 바꿔보세요.";
   elements.resultStats.innerHTML = `
-    <div><span>최종 HP</span><strong>${Math.ceil(state.hp)}</strong></div>
-    <div><span>총 음료</span><strong>${Object.values(state.drinkCounts).reduce((a, b) => a + b, 0)}잔</strong></div>
-    <div><span>최고 카페인</span><strong>${Math.round(state.peakCaffeine)}mg</strong></div>
+    <section class="geyo-ad-panel" aria-label="그요 광고">
+      <p class="system-copy">GEYO MESSAGE</p>
+      <strong>과도한 카페인은 당신의 속을 상하게 만들 수 있어요.</strong>
+      <span>그요에서 건강하게, 착즙쥬스와 다양한 Tea 를 즐겨보세요.</span>
+      <small>직장인 친구에게 게임을 공유하고, 그요 기프티콘 신청까지 완료해보세요.</small>
+    </section>
   `;
   elements.resultScreen.classList.remove("is-hidden");
   render();
@@ -510,6 +548,7 @@ function getLeadPayload(leadId) {
     createdAt: new Date().toISOString(),
     pageUrl: window.location.href.split("#")[0],
     couponLimit: COUPON_LIMIT,
+    campaign: "geyo-juice-tea-gifticon",
     smsCouponRequired: true,
     couponImageRequired: true,
   };
@@ -552,23 +591,23 @@ async function submitLead(payload) {
 
 function renderCouponResult(result) {
   const title = document.createElement("strong");
-  title.textContent = result.synced ? "신청이 접수되었습니다" : "문자 발송 서버 연결 필요";
+  title.textContent = result.synced ? "신청이 접수되었습니다" : "기프티콘 발송 서버 연결 필요";
 
   const description = document.createElement("span");
   if (!result.synced) {
     description.textContent =
-      "현재 서버 연결 전이라 관리자 저장과 문자 발송은 되지 않습니다. 실제 이벤트 전 문자 발송 서버를 연결해야 합니다.";
+      "현재 서버 연결 전이라 관리자 저장과 문자 발송은 되지 않습니다. 실제 이벤트 전 기프티콘 발송 서버를 연결해야 합니다.";
   } else if (result.couponEligible) {
     description.textContent = result.smsQueued
-      ? "선착순 쿠폰 대상입니다. 입력한 연락처로 이미지 쿠폰 문자 발송 요청이 접수되었습니다."
-      : "선착순 쿠폰 대상입니다. 입력한 연락처가 이미지 쿠폰 문자 발송 대기 목록에 접수되었습니다.";
+      ? "선착순 기프티콘 대상입니다. 입력한 연락처로 이미지 기프티콘 문자 발송 요청이 접수되었습니다."
+      : "선착순 기프티콘 대상입니다. 입력한 연락처가 이미지 기프티콘 문자 발송 대기 목록에 접수되었습니다.";
   } else {
     description.textContent =
-      "선착순 100명 쿠폰은 마감되었습니다. 후속 이벤트 안내 대상으로 접수되었습니다.";
+      "선착순 100명 기프티콘은 마감되었습니다. 후속 이벤트 안내 대상으로 접수되었습니다.";
   }
 
   const note = document.createElement("small");
-  note.textContent = "쿠폰 이미지는 추후 제작 후 문자 발송 템플릿에 연결됩니다.";
+  note.textContent = "기프티콘 이미지는 추후 제작 후 문자 발송 템플릿에 연결됩니다.";
 
   elements.couponResult.replaceChildren(title, description, note);
   elements.couponResult.classList.toggle("is-issued", result.synced);
@@ -601,8 +640,8 @@ function renderCouponProgress(stats = {}) {
   const couponCount = Number.isFinite(issued) && issued > 0 ? issued : Math.min(total, limit);
   const closed = couponCount >= limit;
   elements.couponProgress.textContent = closed
-    ? `현재 참여 ${total}명 · 선착순 ${limit}명 쿠폰 마감, 후속 이벤트 안내 접수 중`
-    : `현재 참여 ${total}명 · 선착순 쿠폰 ${couponCount}/${limit}명`;
+    ? `현재 참여 ${total}명 · 선착순 ${limit}명 기프티콘 마감, 후속 이벤트 안내 접수 중`
+    : `현재 참여 ${total}명 · 선착순 기프티콘 ${couponCount}/${limit}명`;
   elements.couponProgress.classList.toggle("is-closed", closed);
 }
 
@@ -642,14 +681,14 @@ async function handleCouponSubmit(event) {
   }
 
   if (!elements.privacyConsent.checked) {
-    setCouponMessage("쿠폰 발급을 위해 개인정보 수집·이용 동의가 필요합니다.");
+    setCouponMessage("기프티콘 발송을 위해 개인정보 수집·이용 동의가 필요합니다.");
     elements.privacyConsent.focus();
     return;
   }
 
   const submitButton = elements.couponForm.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-  setCouponMessage("문자 쿠폰 신청을 접수하는 중입니다.");
+  setCouponMessage("기프티콘 신청을 접수하는 중입니다.");
 
   const leadId = makeLeadId();
   const payload = getLeadPayload(leadId);

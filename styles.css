@@ -834,30 +834,40 @@ kbd {
 }
 
 .result-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: block;
   margin: 18px 0;
 }
 
-.result-stats div {
+.geyo-ad-panel {
   display: grid;
-  gap: 4px;
-  padding: 10px 6px;
-  border: 2px solid #53718c;
-  background: #071624;
+  gap: 8px;
+  padding: 15px;
+  border: 3px solid #07111c;
+  outline: 2px solid #ffd453;
+  background:
+    linear-gradient(135deg, rgba(255, 212, 83, 0.13), transparent 42%),
+    #071624;
+  text-align: left;
 }
 
-.result-stats span {
-  color: #8fa7b9;
-  font-size: 10px;
-  font-weight: 900;
-}
-
-.result-stats strong {
+.geyo-ad-panel strong {
   color: #fff0a7;
-  font-family: monospace;
-  font-size: 18px;
+  font-size: clamp(18px, 3vw, 27px);
+  line-height: 1.35;
+  text-shadow: 2px 2px 0 #02070c;
+}
+
+.geyo-ad-panel span {
+  color: #d7f5e8;
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1.55;
+}
+
+.geyo-ad-panel small {
+  color: #8dddb0;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .coupon-panel {
@@ -1311,16 +1321,16 @@ kbd {
   }
 
   .result-stats {
-    gap: 5px;
     margin: 12px 0;
   }
 
-  .result-stats div {
-    padding: 7px 4px;
+  .geyo-ad-panel {
+    gap: 6px;
+    padding: 10px;
   }
 
-  .result-stats strong {
-    font-size: 14px;
+  .geyo-ad-panel span {
+    font-size: 12px;
   }
 
   .coupon-panel {
