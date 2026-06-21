@@ -640,9 +640,9 @@ function renderCouponResult(result) {
     description.textContent =
       "기프티콘 신청이 접수되었습니다. 서버 반영은 백그라운드에서 진행되며, 같은 연락처로는 한 번만 신청할 수 있습니다.";
   } else if (result.duplicate) {
-    title.textContent = "이미 신청된 연락처입니다";
+    title.textContent = "이미 등록된 연락처입니다";
     description.textContent =
-      result.message || "같은 연락처로는 한 번만 참여할 수 있습니다. 이미 발급된 기프티콘 문자를 확인해 주세요.";
+      result.message || "같은 연락처로는 한 번만 참여할 수 있습니다. 이미 등록한 연락처의 기프티콘 문자를 확인해 주세요.";
   } else if (result.ok === false) {
     title.textContent = "신청 처리 확인 필요";
     description.textContent = result.message || "신청을 처리하지 못했습니다. 연락처를 확인한 뒤 다시 시도해 주세요.";
@@ -701,7 +701,7 @@ async function handleCouponSubmit(event) {
     renderCouponResult({
       synced: true,
       duplicate: true,
-      message: "이 브라우저에서 이미 신청한 연락처입니다. 같은 연락처로는 한 번만 참여할 수 있습니다.",
+      message: "이미 등록된 연락처입니다. 같은 연락처로는 한 번만 참여할 수 있습니다.",
     });
     return;
   }

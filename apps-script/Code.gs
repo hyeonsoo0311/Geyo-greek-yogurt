@@ -111,7 +111,7 @@ function handleLead_(payload) {
         smsQueued: false,
         manualSendRequired: false,
         couponLimit: COUPON_LIMIT,
-        message: "이미 신청된 연락처입니다. 같은 연락처로는 한 번만 참여할 수 있습니다.",
+        message: "이미 등록된 연락처입니다. 같은 연락처로는 한 번만 참여할 수 있습니다.",
       };
     }
 
@@ -305,7 +305,7 @@ function findCouponByPhone_(sheet, phone) {
   for (let i = 0; i < rows.values.length; i += 1) {
     const row = rows.values[i];
     const status = row[rows.index.status];
-    if (row[rows.index.phone] === phone && (status === STATUS.issued || status === STATUS.used)) {
+    if (phoneMatches_(row[rows.index.phone], phone) && (status === STATUS.issued || status === STATUS.used)) {
       return {
         code: row[rows.index.code],
         itemName: row[rows.index.itemName] || COUPON_ITEM_NAME,
@@ -320,7 +320,9 @@ function findLeadByPhone_(sheet, phone) {
   const rows = getRows_(sheet);
   for (let i = 0; i < rows.values.length; i += 1) {
     const row = rows.values[i];
-    if (String(row[rows.index.phone] || "") === phone) {
+    const savedPhone = row[rows.index.phone];
+    const rawPhone = rows.index.rawPhone === undefined ? "" : row[rows.index.rawPhone];
+    if (phoneMatches_(savedPhone, phone) || phoneMatches_(rawPhone, phone)) {
       return {
         leadId: row[rows.index.leadId],
         name: row[rows.index.name],
@@ -411,6 +413,34 @@ function parsePayload_(e) {
 
 function normalizePhone_(phone) {
   return String(phone || "").replace(/[^\d]/g, "");
+}
+
+function phoneMatches_(savedPhone, inputPhone) {
+  const savedKeys = phoneKeys_(savedPhone);
+  const inputKeys = phoneKeys_(inputPhone);
+  for (let i = 0; i < savedKeys.length; i += 1) {
+    if (inputKeys.indexOf(savedKeys[i]) >= 0) return true;
+  }
+  return false;
+}
+
+function phoneKeys_(phone) {
+  const digits = normalizePhone_(phone);
+  if (!digits) return [];
+
+  const keys = [digits];
+  if (digits.indexOf("82") === 0 && digits.length >= 11) {
+    keys.push(`0${digits.slice(2)}`);
+    keys.push(digits.slice(2));
+  }
+  if (digits.indexOf("0") === 0 && digits.length >= 10) {
+    keys.push(digits.slice(1));
+  }
+  if (digits.length >= 10) {
+    keys.push(digits.slice(-10));
+  }
+
+  return keys.filter((key, index) => key && keys.indexOf(key) === index);
 }
 
 function normalizeCode_(code) {
