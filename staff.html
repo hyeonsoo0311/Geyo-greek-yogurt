@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="그요 기프티콘 직원용 사용 처리" />
+    <link rel="icon" href="data:," />
+    <title>GUYO 기프티콘 직원 확인</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="coupon-page">
+    <main class="coupon-shell staff-shell">
+      <section class="gifticon-card staff-card" aria-label="직원용 기프티콘 사용 처리">
+        <p class="system-copy">GUYO STAFF ONLY</p>
+        <h1>기프티콘 사용 처리</h1>
+        <p class="gifticon-subcopy">
+          고객이 제시한 쿠폰 코드를 조회한 뒤, 실제 음료 제공 후에만 사용완료를 눌러주세요.
+        </p>
+
+        <form id="staffForm" class="staff-form">
+          <label>
+            <span>직원 PIN</span>
+            <input id="staffPin" type="password" inputmode="numeric" autocomplete="one-time-code" required />
+          </label>
+          <label>
+            <span>직원명</span>
+            <input id="staffName" type="text" autocomplete="name" placeholder="직원명" required />
+          </label>
+          <label>
+            <span>지점/매장</span>
+            <input id="storeName" type="text" placeholder="그요 매장" required />
+          </label>
+          <label>
+            <span>쿠폰 코드</span>
+            <input id="couponCodeInput" type="text" autocomplete="off" placeholder="GUYO-XXXX-XXXX" required />
+          </label>
+        </form>
+
+        <div class="staff-actions">
+          <button id="checkCoupon" class="pixel-button utility-button" type="button">쿠폰 조회</button>
+          <button id="redeemCoupon" class="pixel-button primary-button" type="button" disabled>사용완료 처리</button>
+        </div>
+
+        <section id="staffResult" class="staff-result" aria-live="polite">
+          쿠폰 코드를 입력하고 조회하세요.
+        </section>
+      </section>
+    </main>
+
+    <script>
+      window.GUYO_COUPON_ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbxHImXtmm7ACbX2NwfjYU11bULweprJ-YgIMqdfBPN6yMhc2aBy-A335ELQHOpR-9ed/exec";
+    </script>
+    <script type="module" src="./staff.js"></script>
+  </body>
+</html>

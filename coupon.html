@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="그요 무료 음료 1잔 기프티콘" />
+    <link rel="icon" href="data:," />
+    <title>GUYO 무료 음료 1잔 기프티콘</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body class="coupon-page">
+    <main class="coupon-shell">
+      <section class="gifticon-card" aria-label="그요 무료 음료 1잔 기프티콘">
+        <p class="system-copy">GUYO GIFTICON</p>
+        <h1>무료 음료 1잔</h1>
+        <p class="gifticon-subcopy">
+          그요(GUYO) 매장에서 착즙쥬스 또는 Tea 1잔으로 교환할 수 있는 이벤트 기프티콘입니다.
+        </p>
+
+        <div class="gifticon-drinks" aria-hidden="true">
+          <span class="gifticon-drink drink-lemon"></span>
+          <span class="gifticon-drink drink-tea"></span>
+        </div>
+
+        <div id="couponStatus" class="gifticon-status">쿠폰 정보를 확인하는 중입니다.</div>
+
+        <dl class="gifticon-info">
+          <div>
+            <dt>쿠폰 코드</dt>
+            <dd id="couponCode">-</dd>
+          </div>
+          <div>
+            <dt>사용 상태</dt>
+            <dd id="couponState">확인 중</dd>
+          </div>
+          <div>
+            <dt>사용 방법</dt>
+            <dd>매장 직원에게 이 화면을 보여주세요.</dd>
+          </div>
+        </dl>
+
+        <p class="gifticon-warning">
+          직원이 사용완료 처리한 뒤에는 같은 쿠폰을 다시 사용할 수 없습니다.
+        </p>
+      </section>
+    </main>
+
+    <script>
+      window.GUYO_COUPON_ENDPOINT =
+        "https://script.google.com/macros/s/AKfycbxHImXtmm7ACbX2NwfjYU11bULweprJ-YgIMqdfBPN6yMhc2aBy-A335ELQHOpR-9ed/exec";
+    </script>
+    <script type="module" src="./coupon.js"></script>
+  </body>
+</html>

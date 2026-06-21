@@ -538,6 +538,7 @@ function makeLeadId() {
 
 function getLeadPayload(leadId) {
   return {
+    action: "lead",
     leadId,
     name: elements.leadName.value.trim(),
     phone: normalizePhone(elements.leadPhone.value),
@@ -552,6 +553,8 @@ function getLeadPayload(leadId) {
     pageUrl: window.location.href.split("#")[0],
     couponLimit: COUPON_LIMIT,
     campaign: "guyo-juice-tea-gifticon",
+    couponItem: "무료 음료 1잔",
+    couponPageUrl: window.GUYO_COUPON_BASE_URL || `${window.location.origin}/coupon.html`,
     smsCouponRequired: true,
     couponImageRequired: true,
   };
@@ -602,15 +605,15 @@ function renderCouponResult(result) {
       "현재 서버 연결 전이라 관리자 저장과 문자 발송은 되지 않습니다. 실제 이벤트 전 기프티콘 발송 서버를 연결해야 합니다.";
   } else if (result.couponEligible) {
     description.textContent = result.smsQueued
-      ? "선착순 기프티콘 대상입니다. 입력한 연락처로 이미지 기프티콘 문자 발송 요청이 접수되었습니다."
-      : "선착순 기프티콘 대상입니다. 입력한 연락처가 이미지 기프티콘 문자 발송 대기 목록에 접수되었습니다.";
+      ? "무료 음료 1잔 기프티콘 대상입니다. 입력한 연락처로 기프티콘 문자 발송 요청이 접수되었습니다."
+      : "무료 음료 1잔 기프티콘 대상입니다. 입력한 연락처가 문자 발송 대기 목록에 접수되었습니다.";
   } else {
     description.textContent =
       "선착순 100명 기프티콘은 마감되었습니다. 후속 이벤트 안내 대상으로 접수되었습니다.";
   }
 
   const note = document.createElement("small");
-  note.textContent = "기프티콘 이미지는 추후 제작 후 문자 발송 템플릿에 연결됩니다.";
+  note.textContent = "매장 직원이 쿠폰 코드를 확인한 뒤 사용완료 처리하면 재사용할 수 없습니다.";
 
   elements.couponResult.replaceChildren(title, description, note);
   elements.couponResult.classList.toggle("is-issued", result.synced);
