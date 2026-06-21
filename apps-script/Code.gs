@@ -94,8 +94,28 @@ function handleLead_(payload) {
     if (name.length < 2) throw new Error("이름을 확인해 주세요.");
     if (phone.length < 10 || phone.length > 11) throw new Error("연락처를 확인해 주세요.");
 
-    const existing = findCouponByPhone_(couponsSheet, phone);
-    const assigned = existing || assignCoupon_(couponsSheet, {
+    const duplicateLead = findLeadByPhone_(leadsSheet, phone);
+    const duplicateCoupon = findCouponByPhone_(couponsSheet, phone);
+    if (duplicateLead || duplicateCoupon) {
+      const stats = getStats_();
+      return {
+        ok: true,
+        duplicate: true,
+        total: stats.total,
+        participantCount: stats.total,
+        couponIssued: stats.couponIssued,
+        couponEligible: false,
+        couponCode: "",
+        couponUrl: "",
+        itemName: COUPON_ITEM_NAME,
+        smsQueued: false,
+        manualSendRequired: false,
+        couponLimit: COUPON_LIMIT,
+        message: "이미 신청된 연락처입니다. 같은 연락처로는 한 번만 참여할 수 있습니다.",
+      };
+    }
+
+    const assigned = assignCoupon_(couponsSheet, {
       leadId,
       name,
       phone,
@@ -290,6 +310,21 @@ function findCouponByPhone_(sheet, phone) {
         code: row[rows.index.code],
         itemName: row[rows.index.itemName] || COUPON_ITEM_NAME,
         couponUrl: row[rows.index.couponUrl],
+      };
+    }
+  }
+  return null;
+}
+
+function findLeadByPhone_(sheet, phone) {
+  const rows = getRows_(sheet);
+  for (let i = 0; i < rows.values.length; i += 1) {
+    const row = rows.values[i];
+    if (String(row[rows.index.phone] || "") === phone) {
+      return {
+        leadId: row[rows.index.leadId],
+        name: row[rows.index.name],
+        phone: row[rows.index.phone],
       };
     }
   }

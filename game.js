@@ -4,10 +4,11 @@ const MAX_FOCUS = 100;
 const CAFFEINE_DANGER = 400;
 const CAFFEINE_EMERGENCY = 1000;
 const DRINK_COOLDOWN = 1100;
-const GUYO_ENDING_DRINKS = 4;
-const CAFFEINE_ENDING_DRINKS = 4;
+const GUYO_ENDING_DRINKS = 5;
+const CAFFEINE_ENDING_DRINKS = 5;
 const LEAD_ENDPOINT = window.GUYO_LEAD_ENDPOINT || "";
 const LEAD_STORAGE_KEY = "guyoGifticonLeads";
+const LEAD_PHONE_STORAGE_KEY = "guyoGifticonLeadPhones";
 const COUPON_LIMIT = 100;
 
 const drinks = [
@@ -262,7 +263,7 @@ function serveDrink(drinkId) {
   const caffeineDrinkCount = state.drinkCounts.coffee + state.drinkCounts.redbear;
 
   if (caffeineDrinkCount >= CAFFEINE_ENDING_DRINKS) {
-    addLog("카페인 음료를 4잔 마셨다. 몸이 더 이상 버티지 못한다.");
+    addLog("카페인 음료를 5잔 마셨다. 몸이 더 이상 버티지 못한다.");
     render();
     triggerEmergencyEnding();
     return;
@@ -571,6 +572,30 @@ function saveLeadLocally(payload) {
   }
 }
 
+function getSavedLeadPhones() {
+  try {
+    return JSON.parse(window.localStorage.getItem(LEAD_PHONE_STORAGE_KEY) || "[]");
+  } catch (error) {
+    return [];
+  }
+}
+
+function rememberLeadPhone(phone) {
+  try {
+    const saved = getSavedLeadPhones();
+    if (!saved.includes(phone)) {
+      saved.unshift(phone);
+      window.localStorage.setItem(LEAD_PHONE_STORAGE_KEY, JSON.stringify(saved.slice(0, 100)));
+    }
+  } catch (error) {
+    // localStorage is a convenience layer only. Server-side duplicate checks still apply.
+  }
+}
+
+function hasSubmittedPhone(phone) {
+  return getSavedLeadPhones().includes(phone);
+}
+
 async function submitLead(payload) {
   if (!LEAD_ENDPOINT) {
     return { synced: false, localSaved: saveLeadLocally(payload) };
@@ -586,8 +611,19 @@ async function submitLead(payload) {
   }
 
   const data = await response.json().catch(() => ({}));
+  if (data.ok === false || data.duplicate) {
+    return {
+      synced: true,
+      ok: data.ok !== false,
+      duplicate: Boolean(data.duplicate),
+      message: data.message || "",
+      couponEligible: Boolean(data.couponEligible ?? false),
+    };
+  }
+
   return {
     synced: true,
+    ok: true,
     total: Number(data.total ?? data.participantCount ?? 0),
     couponIssued: Number(data.couponIssued ?? data.issuedCount ?? 0),
     couponEligible: Boolean(data.couponEligible ?? data.eligible ?? true),
@@ -597,10 +633,20 @@ async function submitLead(payload) {
 
 function renderCouponResult(result) {
   const title = document.createElement("strong");
-  title.textContent = result.synced ? "신청이 접수되었습니다" : "기프티콘 발송 서버 연결 필요";
+  title.textContent = result.synced || result.pending ? "신청이 접수되었습니다" : "기프티콘 발송 서버 연결 필요";
 
   const description = document.createElement("span");
-  if (!result.synced) {
+  if (result.pending) {
+    description.textContent =
+      "기프티콘 신청이 접수되었습니다. 서버 반영은 백그라운드에서 진행되며, 같은 연락처로는 한 번만 신청할 수 있습니다.";
+  } else if (result.duplicate) {
+    title.textContent = "이미 신청된 연락처입니다";
+    description.textContent =
+      result.message || "같은 연락처로는 한 번만 참여할 수 있습니다. 이미 발급된 기프티콘 문자를 확인해 주세요.";
+  } else if (result.ok === false) {
+    title.textContent = "신청 처리 확인 필요";
+    description.textContent = result.message || "신청을 처리하지 못했습니다. 연락처를 확인한 뒤 다시 시도해 주세요.";
+  } else if (!result.synced) {
     description.textContent =
       "현재 서버 연결 전이라 관리자 저장과 문자 발송은 되지 않습니다. 실제 이벤트 전 기프티콘 발송 서버를 연결해야 합니다.";
   } else if (result.couponEligible) {
@@ -616,8 +662,8 @@ function renderCouponResult(result) {
   note.textContent = "매장 직원이 쿠폰 코드를 확인한 뒤 사용완료 처리하면 재사용할 수 없습니다.";
 
   elements.couponResult.replaceChildren(title, description, note);
-  elements.couponResult.classList.toggle("is-issued", result.synced);
-  elements.couponResult.classList.toggle("is-warning", !result.synced);
+  elements.couponResult.classList.toggle("is-issued", Boolean(result.synced || result.pending));
+  elements.couponResult.classList.toggle("is-warning", Boolean(!result.synced && !result.pending));
 }
 
 function setCouponMessage(message) {
@@ -651,15 +697,25 @@ async function handleCouponSubmit(event) {
     return;
   }
 
+  if (hasSubmittedPhone(phone)) {
+    renderCouponResult({
+      synced: true,
+      duplicate: true,
+      message: "이 브라우저에서 이미 신청한 연락처입니다. 같은 연락처로는 한 번만 참여할 수 있습니다.",
+    });
+    return;
+  }
+
   const submitButton = elements.couponForm.querySelector('button[type="submit"]');
   submitButton.disabled = true;
-  setCouponMessage("기프티콘 신청을 접수하는 중입니다.");
 
   const leadId = makeLeadId();
   const payload = getLeadPayload(leadId);
+  renderCouponResult({ pending: true });
 
   try {
     const result = await submitLead(payload);
+    if (result.synced && result.ok !== false) rememberLeadPhone(phone);
     renderCouponResult(result);
   } catch (error) {
     saveLeadLocally(payload);
